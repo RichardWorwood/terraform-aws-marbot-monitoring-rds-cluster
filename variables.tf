@@ -70,6 +70,12 @@ variable "deployment-type" {
   default     = "db-cluster"
 }
 
+variable "db_connection_threshold" {
+  type        = number
+  description = "The active number of connections to the DB currently"
+  default     = 32
+}
+
 locals {
   db-type = {
     db-cluster = {

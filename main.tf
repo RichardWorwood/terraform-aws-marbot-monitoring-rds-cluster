@@ -231,6 +231,26 @@ resource "aws_cloudwatch_metric_alarm" "freeable_memory" {
   tags                = var.tags
 }
 
+resource "aws_cloudwatch_metric_alarm" "db_connections" {
+  depends_on = [aws_sns_topic_subscription.marbot]
+  count      = (var.db_connection_threshold >= 0 && var.enabled) ? 1 : 0
+
+  alarm_name          = "marbot-rds-cluster-db-connections-${random_id.id8.hex}"
+  alarm_description   = "Less than usual connections, If a known outage or release is not taking place right now, there may be an issue with connectivity of the app to the RDS instance. (created by marbot)"
+  namespace           = "AWS/RDS"
+  metric_name         = "DatabaseConnections"
+  statistic           = "Average"
+  period              = 600
+  evaluation_periods  = 1
+  comparison_operator = "LessThanThreshold"
+  threshold           = var.db_connection_threshold
+  alarm_actions       = [join("", aws_sns_topic.marbot.*.arn)]
+  ok_actions          = [join("", aws_sns_topic.marbot.*.arn)]
+  dimensions          = local.db-type["db-instance"]
+  treat_missing_data  = var.treat_missing_data
+  tags                = var.tags
+}
+
 ##########################################################################
 #                                                                        #
 #                                 EVENTS                                 #
